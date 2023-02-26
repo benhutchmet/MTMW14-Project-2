@@ -85,3 +85,13 @@ def f2_function_analytic(x, a, b):
     denominator = math.exp(b) - math.exp(a)
     
     return numerator/denominator
+    
+def analytic_solution(params_analytic):
+    """Analytic solver for the SWEs using equations (3), (4) and (5) from project brief specifying the solutions at (x, y) using methods from Mushgrave (1985).
+    
+    Inputs:
+    params - the dictionary containing the constants to be used (in this case 'params_analytic')
+    
+    Outputs:
+    x - array of x values
+    y - array of y values
