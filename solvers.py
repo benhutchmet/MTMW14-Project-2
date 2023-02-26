@@ -80,3 +80,8 @@ def f2_function_analytic(x, a, b):
     
     # compute the numerator
     numerator = (math.exp(a) - 1)*b*math.exp(b*x) + (1 - math.exp(b))*math.exp(a*x)
+    
+    # compute the denominator
+    denominator = math.exp(b) - math.exp(a)
+    
+    return numerator/denominator
