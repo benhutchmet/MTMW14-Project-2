@@ -341,5 +341,88 @@ def u_to_vgrid_mapping(u, x_points):
     # return the index of u mapped onto the v-grid set up for forward-backward time scheme
     return (u_identical_index + u_j_iplus1 + u_j_minus1_i + u_j_minus1_iplus1)/4
 
+# define a function to calculate the gradient of eta on the arakawa c-grid for both the u grid and the v grid
+
+def eta_gradient(eta, x_points, y_points, dx, dy):
+    """Function for computing the gradient of eta on the arakawa c-grid for both the u grid and the v grid.
+    
+    Inputs:
+    eta - the free surface height
+    x_points - the number of x-grid points
+    y_points - the number of y-grid points
+    dx - the grid spacing in the x-direction
+    dy - the grid spacing in the y-direction
+    
+    Outputs:
+    deta_dx - the gradient of eta in the x-direction
+    deta_dy - the gradient of eta in the y-direction
+    """
+    # create arrays of zeros for the gradient of eta in the x-direction and y-direction
+    array_zeros_x = np.zeros((y_points, 1))
+    array_zeros_y = np.zeros((1, x_points))
+
+    # concatenate the zeros to the start/end of the eta array for the x-direction
+    eta_x = np.concatenate((eta, array_zeros_x), axis=1)
+    eta_j_iminus1 = np.concatenate((array_zeros_x, eta), axis=1)
+
+    # concatenate the zeros to the start/end of the eta array for the y-direction
+    eta_y = np.concatenate((eta, array_zeros_y), axis=0)
+    eta_jminus1_i = np.concatenate((array_zeros_y, eta), axis=0)
+
+    # calculate the gradient of eta in the x-direction
+    deta_dx = (eta_x - eta_j_iminus1)/(dx)
+    
+    # calculate the gradient of eta in the y-direction
+    deta_dy = (eta_y - eta_jminus1_i)/(dy)
+
+    # return the gradient of eta in the x-direction and y-direction
+    return deta_dx, deta_dy
+
+# we want to compute the energy to test the stability of the model
+
+def energy(u, v, eta, dx, dy, rho, H, g):
+    """Function for computing the energy of the model.
+    
+    Inputs:
+    u - the zonal velocity
+    v - the meridional velocity
+    eta - the free surface height
+    dx - the grid spacing in the x-direction
+    dy - the grid spacing in the y-direction
+    rho - the density of the fluid
+    H - the depth of the fluid
+    g - the gravitational acceleration
+    
+    Outputs:
+    energy - the total energy of the model over the domain.
+    """
+    # calculate the kinetic energy
+    kinetic_energy = H*(u**2 + v**2)
+    
+    # calculate the potential energy
+    potential_energy = g*eta**2
+    
+    # calculate the total energy per grid point
+    energy = 1/2*rho*(kinetic_energy + potential_energy)
+    
+    # return the total energy over the whole domain
+    return np.sum(energy)*dx*dy
+
+# define the function to solve the shallow water equations using the forward-backward time scheme
+def forward_backward_time_scheme(params):
+    """Function for solving the shallow water equations using the forward-backward time scheme.
+    
+    Inputs:
+    params - a dictionary containing the parameters for the model
+    
+    Outputs:
+    u - the zonal velocity
+    v - the meridional velocity
+    eta - the free surface height
+    """
+    # set up the parameters
+
+
+
 
 
