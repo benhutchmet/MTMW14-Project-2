@@ -220,7 +220,35 @@ def plotting_taskC(params_analytic):
     plt.show()
 
 
-
+# now test the function
+#plotting_taskC(params_analytic)
     
+# now we move onto task D where we consider a forward-backward time scheme (Matsuno (1966); Beckers and Deleersnijder (1993))
+#  this method alternates the order in which the two momentum equations are solved
+# first - u before v
+# then - v before u
+# then returned back to u before v and so on
 
+# before we can do this we must first specify the domain and the grid on which this simulation occurs
 
+# but before we can do that we must first define the zonal wind forcing for the simulation
+
+def zonal_wind_stress(y_ugrid, x_points, L, tau0):
+    """Function for computing the zonal wind stress at the u-grid points using distance from origin.
+    
+    Inputs:
+    y_ugrid - the y-coordinates of the u-grid points
+    x_points - the number of x-grid points
+    L - the length of the domain
+    tau0 - the maximum wind stress
+    
+    Outputs:
+    tau - the zonal wind stress at the u-grid points
+    """
+
+    # compute zonal wind stress at the u-grid points mapped onto y
+    tau = tau0*-np.cos(np.pi*y_ugrid/L)
+
+    # return the zonal wind stress mapped onto the arakawa u-grid (c) using the np.tile function
+    # DOES THIS NEED TO BE TRANSPOSED?
+    return np.tile(tau, (x_points + 1, 1))
