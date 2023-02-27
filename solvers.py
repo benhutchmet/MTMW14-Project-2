@@ -152,16 +152,18 @@ def analytic_solution(params_analytic):
 
             # compute the analytic solutions of //
             # u, v and eta at [x,y]
-            # what is the deal with j and i indexing here?
+            # what is the deal with j and i indexing here??
 
             # analytic solution for u[x,y]
-            u[i, j] = -tau_coeff * f1_function_analytic(x[i]/L, a, b) * cos(pi*y[j]/L)
+            u[j, i] = -tau_coeff * f1_function_analytic(x[i]/L, a, b) * cos(
+                pi*y[j]/L)
 
             # analytic solution for v[x,y]
-            v[i, j] = tau_coeff * f2_function_analytic(x[i]/L, a, b) * sin(pi*y[j]/L)
+            v[j, i] = tau_coeff * f2_function_analytic(x[i]/L, a, b) * sin(
+                pi*y[j]/L)
 
             # analytic solution for eta[x,y]
-            eta[i, j] = eta0 + tau_coeff * (f0*L/g) * (
+            eta[j, i] = eta0 + tau_coeff * (f0*L/g) * (
                 gamma/(f0*pi) * f2_function_analytic(x[i]/L, a, b) * cos(pi*y[j]/L)
                 + 1/pi * f1_function_analytic(x[i]/L, a, b) * (
                 sin(pi*y[j]/L) * (1 + beta*y[j]/f0)
@@ -171,6 +173,9 @@ def analytic_solution(params_analytic):
 
     # return the values for the analytic solution of u, v and eta as well as x and y
     return u, v, eta, x, y
+
+# lets take a look at the results of the analytic solution
+u, v, eta, x, y = analytic_solution(params_analytic)
 
 # define a function for the plotting in Task C
 def plotting_taskC(params_analytic):
@@ -186,42 +191,45 @@ def plotting_taskC(params_analytic):
     # compute the analytic solution
     u, v, eta, x, y = analytic_solution(params_analytic)
     
-    # plot the results as three subplot figures alonside each other
-    fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(15, 5))
+    # plot the results as three seperate plots, with a colourbar for each
 
-    # plot the results for eta
-    ax1.set_title('eta analytic')
-    ax1.set_xlabel('x (km)')
-    ax1.set_ylabel('y (km)')
-    ax1.contourf(x, y, eta, 100, cmap='jet')
-    ax1.set_aspect('equal')
-    # save fig using string from dictionary
-    plt.savefig(params_analytic['eta_fig_name'].png)
+    # plot the u results
+    plt.figure()
+    plt.pcolormesh(x/1000, y/1000, u, cmap='RdBu_r')
+    plt.colorbar()
+    plt.title('Analytic solution for u')
+    plt.xlabel('x (km)')
+    plt.ylabel('y (km)')
+    # save the figure with the title specified in dictionary as as a .png file
+    plt.savefig(params_analytic['u_fig_name'] + '.png')
+    plt.show()
 
-    # plot the results for u
-    ax2.set_title('u analytic')
-    ax2.set_xlabel('x (km)')
-    ax2.set_ylabel('y (km)')
-    ax2.contourf(x, y, u, 100, cmap='jet')
-    ax2.set_aspect('equal')
-    # save fig using string from dictionary
-    plt.savefig(params_analytic['u_fig_name'].png)
+    # plot the v results
+    plt.figure()
+    plt.pcolormesh(x/1000, y/1000, v, cmap='RdBu_r')
+    plt.colorbar()
+    plt.title('Analytic solution for v')
+    plt.xlabel('x (km)')
+    plt.ylabel('y (km)')
+    # save the figure with the title specified in dictionary as as a .png file
+    plt.savefig(params_analytic['v_fig_name'] + '.png')
+    plt.show()
 
-    # plot the results for v
-    ax3.set_title('v analytic')
-    ax3.set_xlabel('x (km)')
-    ax3.set_ylabel('y (km)')
-    ax3.contourf(x, y, v, 100, cmap='jet')
-    ax3.set_aspect('equal')
-    # save fig using string from dictionary
-    plt.savefig(params_analytic['v_fig_name'].png)
-
-    # show the plots
+    # plot the eta results
+    plt.figure()
+    plt.pcolormesh(x/1000, y/1000, eta, cmap='RdBu_r')
+    plt.colorbar()
+    plt.title('Analytic solution for eta')
+    plt.xlabel('x (km)')
+    plt.ylabel('y (km)')
+    # save the figure with the title specified in dictionary as as a .png file
+    plt.savefig(params_analytic['eta_fig_name'] + '.png')
     plt.show()
 
 
 # now test the function
-#plotting_taskC(params_analytic)
+
+plotting_taskC(params_analytic)
     
 # now we move onto task D where we consider a forward-backward time scheme (Matsuno (1966); Beckers and Deleersnijder (1993))
 #  this method alternates the order in which the two momentum equations are solved
