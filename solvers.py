@@ -152,15 +152,13 @@ def analytic_solution(params_analytic):
 
             # compute the analytic solutions of //
             # u, v and eta at [x,y]
-            # what is the deal with j and i indexing here??
+            # what is the deal with j and i indexing here?
 
             # analytic solution for u[x,y]
-            u[j, i] = -tau_coeff * f1_function_analytic(x[i]/L, a, b) * cos(
-                pi*y[j]/L)
+            u[j, i] = -tau_coeff * f1_function_analytic(x[i]/L, a, b) * cos(pi*y[j]/L)
 
             # analytic solution for v[x,y]
-            v[j, i] = tau_coeff * f2_function_analytic(x[i]/L, a, b) * sin(
-                pi*y[j]/L)
+            v[j, i] = tau_coeff * f2_function_analytic(x[i]/L, a, b) * sin(pi*y[j]/L)
 
             # analytic solution for eta[x,y]
             eta[j, i] = eta0 + tau_coeff * (f0*L/g) * (
@@ -173,9 +171,6 @@ def analytic_solution(params_analytic):
 
     # return the values for the analytic solution of u, v and eta as well as x and y
     return u, v, eta, x, y
-
-# lets take a look at the results of the analytic solution
-u, v, eta, x, y = analytic_solution(params_analytic)
 
 # define a function for the plotting in Task C
 def plotting_taskC(params_analytic):
@@ -228,8 +223,7 @@ def plotting_taskC(params_analytic):
 
 
 # now test the function
-
-plotting_taskC(params_analytic)
+#plotting_taskC(params_analytic)
     
 # now we move onto task D where we consider a forward-backward time scheme (Matsuno (1966); Beckers and Deleersnijder (1993))
 #  this method alternates the order in which the two momentum equations are solved
@@ -260,3 +254,92 @@ def zonal_wind_stress(y_ugrid, x_points, L, tau0):
     # return the zonal wind stress mapped onto the arakawa u-grid (c) using the np.tile function
     # DOES THIS NEED TO BE TRANSPOSED?
     return np.tile(tau, (x_points + 1, 1))
+
+# we also need to compute coriolis and map this onto both the u-grid and the v-grid
+def coriolis(y_ugrid, y_vgrid, x_points, f0, beta):
+    """Function for computing the coriolis parameter at the u-grid and v-grid points using distance from origin.
+    
+    Inputs:
+    y_ugrid - the y-coordinates of the u-grid points
+    y_vgrid - the y-coordinates of the v-grid points
+    x_points - the number of x-grid points
+    f0 - the reference coriolis parameter
+    beta - the gradient of the coriolis parameter
+    
+    Outputs:
+    f_u - the coriolis parameter at the u-grid points
+    f_v - the coriolis parameter at the v-grid points
+    """
+
+    # calcuate the coriolis parameter at the u-grid points mapped onto y
+    f_u = f0 + (beta*y_ugrid)
+    
+    # calculate the coriolis parameter at the v-grid points mapped onto y
+    f_v = f0 + (beta*y_vgrid)
+
+    # map the coriolis parameter onto the arakawa u-grid (c) using the np.tile function
+    f_u = np.tile(f_u, (x_points + 1, 1))
+
+    # map the coriolis parameter onto the arakawa v-grid (c) using the np.tile function
+    f_v = np.tile(f_v, (x_points, 1))
+
+    # return the coriolis parameter at the u-grid and v-grid points
+    return f_u, f_v
+
+# we need to set up the grid such that the values for meridional velocity (v) are computed onto a corresponding index in the zonal velocity (u) on an arawaka c-grid
+
+# we also need to set up the grid such that the values for zonal velocity (u) are computed onto a corresponding index in the meridional velocity (v) on an arawaka c-grid
+
+# set up the function v to u grid mapping
+
+def v_to_ugrid_mapping(v, y_points):
+    """Function for mapping the v-grid values onto the u-grid.
+    
+    Inputs:
+    v - the v-grid values
+    y_points - the number of y-grid points
+    
+    Outputs:
+    index of v mapped onto the u-grid set up for forward-backward time scheme
+    """
+
+    # create array of zeros for the v-grid values mapped onto the u-grid
+    # we use this to append zeros to the start/end of v arrays
+    zeros_array_v_to_u = np.zeros((y_points, 1))
+
+    # set up the slicing for forward-backward time scheme
+    v_identical_index = np.concatenate((v[:-1, :], zeros_array_v_to_u), axis=1)
+    v_j_minus_1_index = np.concatenate((zeros_array_v_to_u, v[:-1, :]), axis=1)
+    v_jadd1_i = np.concatenate((v[1:, :], zeros_array_v_to_u), axis=1)
+    v_jadd1_iminus1 = np.concatenate((zeros_array_v_to_u, v[1:, :]), axis=1)
+
+    # return the index of v mapped onto the u-grid set up for forward-backward time scheme
+    return (v_identical_index + v_j_minus_1_index + v_jadd1_i + v_jadd1_iminus1)/4
+
+# set up the function u to v grid mapping
+def u_to_vgrid_mapping(u, x_points):
+    """Function for mapping the u-grid values onto the v-grid.
+    
+    Inputs:
+    u - the u-grid values
+    x_points - the number of x-grid points
+    
+    Outputs:
+    index of u mapped onto the v-grid set up for forward-backward time scheme
+    """
+
+    # create array of zeros for the u-grid values mapped onto the v-grid
+    # we use this to append zeros to the start/end of u arrays
+    zeros_array_u_to_v = np.zeros((1, x_points))
+
+    # set up the slicing for forward-backward time scheme
+    u_identical_index = np.concatenate((u[:, :-1], zeros_array_u_to_v), axis=0)
+    u_j_iplus1 = np.concatenate((u[:, 1:], zeros_array_u_to_v), axis=0)
+    u_j_minus1_i = np.concatenate((zeros_array_u_to_v, u[:, :-1]), axis=0)
+    u_j_minus1_iplus1 = np.concatenate((zeros_array_u_to_v, u[:, 1:]), axis=0)
+
+    # return the index of u mapped onto the v-grid set up for forward-backward time scheme
+    return (u_identical_index + u_j_iplus1 + u_j_minus1_i + u_j_minus1_iplus1)/4
+
+
+
