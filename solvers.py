@@ -172,6 +172,55 @@ def analytic_solution(params_analytic):
     # return the values for the analytic solution of u, v and eta as well as x and y
     return u, v, eta, x, y
 
+# define a function for the plotting in Task C
+def plotting_taskC(params_analytic):
+    """Function for plotting the results of the analytic solution for the ocean gyre simulation.
+    
+    Inputs:
+    params_analytic - the dictionary containing the constants to be used (in this case 'params_analytic')
+    
+    Outputs:
+    None
+    """
+    
+    # compute the analytic solution
+    u, v, eta, x, y = analytic_solution(params_analytic)
+    
+    # plot the results as three subplot figures alonside each other
+    fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(15, 5))
 
+    # plot the results for eta
+    ax1.set_title('eta analytic')
+    ax1.set_xlabel('x (km)')
+    ax1.set_ylabel('y (km)')
+    ax1.contourf(x, y, eta, 100, cmap='jet')
+    ax1.set_aspect('equal')
+    # save fig using string from dictionary
+    plt.savefig(params_analytic['eta_fig_name'].png)
+
+    # plot the results for u
+    ax2.set_title('u analytic')
+    ax2.set_xlabel('x (km)')
+    ax2.set_ylabel('y (km)')
+    ax2.contourf(x, y, u, 100, cmap='jet')
+    ax2.set_aspect('equal')
+    # save fig using string from dictionary
+    plt.savefig(params_analytic['u_fig_name'].png)
+
+    # plot the results for v
+    ax3.set_title('v analytic')
+    ax3.set_xlabel('x (km)')
+    ax3.set_ylabel('y (km)')
+    ax3.contourf(x, y, v, 100, cmap='jet')
+    ax3.set_aspect('equal')
+    # save fig using string from dictionary
+    plt.savefig(params_analytic['v_fig_name'].png)
+
+    # show the plots
+    plt.show()
+
+
+
+    
 
 
