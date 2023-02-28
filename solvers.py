@@ -5,8 +5,6 @@ import matplotlib.pyplot as plt
 import math
 from dictionaries import *
 
-
-# %%
 # Define the analytical solvers for Task C
 # Define the simple functions first
 
@@ -83,14 +81,14 @@ def f2_function_analytic(x, a, b):
     """
     
     # compute the numerator
-    numerator = (math.exp(a) - 1)*b*math.exp(b*x) + (1 - math.exp(b))*math.exp(a*x)
+    numerator = (math.exp(a) - 1)*b*math.exp(b*x) + (1 - math.exp(b))*a*math.exp(a*x)
     
     # compute the denominator
     denominator = math.exp(b) - math.exp(a)
     
     return numerator/denominator
 
-# %%
+ 
     
 def analytic_solution(params_analytic):
     """Analytic solver for the SWEs using equations (3), (4) and (5) from project brief specifying the solutions at (x, y) using methods from Mushgrave (1985).
@@ -114,9 +112,6 @@ def analytic_solution(params_analytic):
     gridbox_size = params_analytic['gridbox_size']
 
     # define arrays for x and y
-    #x = np.linspace(0, x_points*gridbox_size, x_points)
-    #y = np.linspace(0, y_points*gridbox_size, y_points)
-
     x = np.arange(x_points + 1)*gridbox_size
     y = np.arange(y_points + 1)*gridbox_size
 
@@ -131,15 +126,9 @@ def analytic_solution(params_analytic):
     L = params_analytic['L']
     #eta0 = params_analytic['eta0']
 
-    eta0 = -0.1145
+    eta0 = 0.007437890509284137 # value of eta at eta[0, L/2] as an estimate of eta0
 
     # define the arrays to store u, v and eta results
-    # does the value of v being situated on the x-axis //
-    # and the value of u being situated on the y-axis affect this?
-    #u = np.zeros((x_points, y_points))
-    #v = np.zeros((x_points, y_points))
-    #eta = np.zeros((x_points, y_points))
-
     u = np.zeros((y_points, x_points))
     v = np.zeros((y_points, x_points))
     eta = np.zeros((y_points, x_points))
@@ -157,8 +146,8 @@ def analytic_solution(params_analytic):
     tau_coeff = tau0 / (np.pi*gamma*rho*H)
 
     # compute u, v and eta for all values of x and y
-    for j in range(y_points): # i for x
-        for i in range(x_points): # j for y
+    for j in range(y_points): # j for y
+        for i in range(x_points): # i for x
 
             # improve readability
             sin = np.sin
@@ -184,7 +173,8 @@ def analytic_solution(params_analytic):
                     )
                 )
 
-    print(eta0)
+    # print the value of eta at the centre of the domain
+    #print('eta at centre of domain: ', eta[0, int(x_points/2)])
 
     # return the values for the analytic solution of u, v and eta as well as x and y
     return u, v, eta, x, y
@@ -238,10 +228,12 @@ def plotting_taskC(params_analytic):
     plt.savefig(params_analytic['eta_fig_name'] + '.png')
     plt.show()
 
-# %%
 
 # now test the function
-plotting_taskC(params_analytic)
+plotting_taskC(params_analytic_highest_res)
+
+# print the values of the constants used in the simulation
+#print(params_analytic_highest_res)
 
 # %%
     
