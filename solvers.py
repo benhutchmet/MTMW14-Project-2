@@ -1,8 +1,12 @@
+# %%
+
 import numpy as np
 import matplotlib.pyplot as plt
 import math
 from dictionaries import *
 
+
+# %%
 # Define the analytical solvers for Task C
 # Define the simple functions first
 
@@ -85,6 +89,8 @@ def f2_function_analytic(x, a, b):
     denominator = math.exp(b) - math.exp(a)
     
     return numerator/denominator
+
+# %%
     
 def analytic_solution(params_analytic):
     """Analytic solver for the SWEs using equations (3), (4) and (5) from project brief specifying the solutions at (x, y) using methods from Mushgrave (1985).
@@ -108,8 +114,11 @@ def analytic_solution(params_analytic):
     gridbox_size = params_analytic['gridbox_size']
 
     # define arrays for x and y
-    x = np.linspace(0, x_points*gridbox_size, x_points)
-    y = np.linspace(0, y_points*gridbox_size, y_points)
+    #x = np.linspace(0, x_points*gridbox_size, x_points)
+    #y = np.linspace(0, y_points*gridbox_size, y_points)
+
+    x = np.arange(x_points + 1)*gridbox_size
+    y = np.arange(y_points + 1)*gridbox_size
 
     # extract the constants from the dictionary
     f0 = params_analytic['f0']
@@ -120,14 +129,20 @@ def analytic_solution(params_analytic):
     H = params_analytic['H']
     tau0 = params_analytic['tau0']
     L = params_analytic['L']
-    eta0 = params_analytic['eta0']
+    #eta0 = params_analytic['eta0']
+
+    eta0 = -0.1145
 
     # define the arrays to store u, v and eta results
     # does the value of v being situated on the x-axis //
     # and the value of u being situated on the y-axis affect this?
-    u = np.zeros((x_points, y_points))
-    v = np.zeros((x_points, y_points))
-    eta = np.zeros((x_points, y_points))
+    #u = np.zeros((x_points, y_points))
+    #v = np.zeros((x_points, y_points))
+    #eta = np.zeros((x_points, y_points))
+
+    u = np.zeros((y_points, x_points))
+    v = np.zeros((y_points, x_points))
+    eta = np.zeros((y_points, x_points))
 
     # start the analysis by computing epsilon
     epsilon = epsilon_function_analytic(gamma, L, beta)
@@ -142,8 +157,8 @@ def analytic_solution(params_analytic):
     tau_coeff = tau0 / (np.pi*gamma*rho*H)
 
     # compute u, v and eta for all values of x and y
-    for i in range(x_points): # i for x
-        for j in range(y_points): # j for y
+    for j in range(y_points): # i for x
+        for i in range(x_points): # j for y
 
             # improve readability
             sin = np.sin
@@ -165,9 +180,11 @@ def analytic_solution(params_analytic):
                 gamma/(f0*pi) * f2_function_analytic(x[i]/L, a, b) * cos(pi*y[j]/L)
                 + 1/pi * f1_function_analytic(x[i]/L, a, b) * (
                 sin(pi*y[j]/L) * (1 + beta*y[j]/f0)
-                + beta*L/(f0*pi) * cos(pi*y[j]/L)
+                + (beta*L)/(f0*pi) * cos(pi*y[j]/L)
                     )
                 )
+
+    print(eta0)
 
     # return the values for the analytic solution of u, v and eta as well as x and y
     return u, v, eta, x, y
@@ -221,9 +238,12 @@ def plotting_taskC(params_analytic):
     plt.savefig(params_analytic['eta_fig_name'] + '.png')
     plt.show()
 
+# %%
 
 # now test the function
-#plotting_taskC(params_analytic)
+plotting_taskC(params_analytic)
+
+# %%
     
 # now we move onto task D where we consider a forward-backward time scheme (Matsuno (1966); Beckers and Deleersnijder (1993))
 #  this method alternates the order in which the two momentum equations are solved
@@ -426,3 +446,5 @@ def forward_backward_time_scheme(params):
 
 
 
+
+# %%
