@@ -78,6 +78,8 @@ params_numerical_TaskD_1Day = {'f0': 10**-4, # coriolis paramater (s^-1)
                                     'v_fig_name': 'v_numerical_TaskD_1Day', # name for the v figure
                                     'eta_fig_name': 'eta_numerical_TaskD_1Day', # name for the eta figure
                                     'eta_contour_fig_name': 'eta_contour_numerical_TaskD_1Day', # name for the 2D eta contour figure
+                                    'use_higher_resolution': 'False', # use higher resolution grid'
+                                    'task': 'D1' # Task D1
                                     }
 
 # %%
