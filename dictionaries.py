@@ -68,9 +68,16 @@ params_numerical_TaskD_1Day = {'f0': 10**-4, # coriolis paramater (s^-1)
                                     'tau0': 0.2, # wind stress vector constant (N m^-2)
                                     'tau_meridional': 0, # meridional wind stress (N m^-2)
                                     'L': 10**6, # dimensions of square domain (m)
-                                    'gridbox_size': 100000, # spacing of square grid cells (m)
+                                    'dx': 100000, # x grid spacing (m)
+                                    'dy': 100000, # y grid spacing (m)
                                     'x_points': 10, # number of points in the x domain
                                     'y_points': 10, # number of points in the y domain
                                     'dt': 480, # time step (s) - ambitious (approx 0.7 below CFL criteria)
+                                    'nt': int(86400/480), # number of time steps - for 1 day
+                                    'u_fig_name': 'u_numerical_TaskD_1Day', # name for the u figure
+                                    'v_fig_name': 'v_numerical_TaskD_1Day', # name for the v figure
+                                    'eta_fig_name': 'eta_numerical_TaskD_1Day', # name for the eta figure
+                                    'eta_contour_fig_name': 'eta_contour_numerical_TaskD_1Day', # name for the 2D eta contour figure
+                                    }
 
 # %%
