@@ -230,12 +230,10 @@ def plotting_taskC(params_analytic):
 
 
 # now test the function
-plotting_taskC(params_analytic_highest_res)
+#plotting_taskC(params_analytic_highest_res)
 
 # print the values of the constants used in the simulation
 #print(params_analytic_highest_res)
-
-# %%
     
 # now we move onto task D where we consider a forward-backward time scheme (Matsuno (1966); Beckers and Deleersnijder (1993))
 #  this method alternates the order in which the two momentum equations are solved
@@ -491,9 +489,9 @@ def forward_backward_time_scheme(params):
 
     # set up the analytical solution for the full and half grid spacing
     if use_higher_resolution == 'True':
-        u_analytic, v_analytic, eta_analytic = analytic_solution(params_analytic_higher_res)
+        u_analytic, v_analytic, eta_analytic, x, y = analytic_solution(params_analytic_higher_res)
     else:
-        u_analytic, v_analytic, eta_analytic = analytic_solution(params_analytic)
+        u_analytic, v_analytic, eta_analytic, x, y = analytic_solution(params_analytic)
 
     # loop over time with intervals of 2 up to nt-2 for the forward-backward time scheme
     for i in range(0, nt - 2, 2):
@@ -631,9 +629,12 @@ def forward_backward_time_scheme(params):
         plt.show()
 
 
+# test that the correct dictionary is being used
 
+#print(params_numerical_TaskD_1Day)
 
-
+# test the numerical solution
+forward_backward_time_scheme(params_numerical_TaskD_1Day)
 
 
 
