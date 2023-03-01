@@ -263,7 +263,7 @@ def zonal_wind_stress(y_ugrid, x_points, L, tau0):
 
     # return the zonal wind stress mapped onto the arakawa u-grid (c) using the np.tile function
     # DOES THIS NEED TO BE TRANSPOSED?
-    return np.tile(tau, (x_points + 1, 1))
+    return np.tile(tau, (x_points + 1, 1)).transpose()
 
 # we also need to compute coriolis and map this onto both the u-grid and the v-grid
 def coriolis(y_ugrid, y_vgrid, x_points, f0, beta):
@@ -288,10 +288,10 @@ def coriolis(y_ugrid, y_vgrid, x_points, f0, beta):
     f_v = f0 + (beta*y_vgrid)
 
     # map the coriolis parameter onto the arakawa u-grid (c) using the np.tile function
-    f_u = np.tile(f_u, (x_points + 1, 1))
+    f_u = np.tile(f_u, (x_points + 1, 1)).transpose()
 
     # map the coriolis parameter onto the arakawa v-grid (c) using the np.tile function
-    f_v = np.tile(f_v, (x_points, 1))
+    f_v = np.tile(f_v, (x_points, 1)).transpose()
 
     # return the coriolis parameter at the u-grid and v-grid points
     return f_u, f_v
@@ -527,6 +527,7 @@ def forward_backward_time_scheme(params):
 
         # Compute the zonal velocity at the next time step
         u_next = u + coriolis_u*dt*v_to_ugrid_mapping(v, y_points) - g*dt*deta_dx - gamma*dt*u + (tau_zonal/(rho*H))*dt
+
         # reset the u boundary conditions (no-slip)
         u_next[:, 0] = 0
         u_next[:, x_points] = 0
@@ -612,9 +613,9 @@ def forward_backward_time_scheme(params):
 
 
         # create a 2D contour plot of eta
-        fig4, ax4 = plt.subplots(figsize=(6, 6))
+        fig4, ax4 = plt.subplots(figsize=(10, 8))
         # plot the contour
-        contour = ax4.contourf(x_plotting/1000, y_plotting/1000, eta[:,:], 100, cmap='jet')
+        contour = ax4.pcolormesh(x_plotting/1000, y_plotting/1000, eta[:,:], cmap='jet')
         # set the x label
         ax4.set_xlabel('x (km)')
         # set the y label
@@ -634,8 +635,9 @@ def forward_backward_time_scheme(params):
 #print(params_numerical_TaskD_1Day)
 
 # test the numerical solution
-forward_backward_time_scheme(params_numerical_TaskD_1Day)
+#forward_backward_time_scheme(params_numerical_TaskD_1Day)
 
+print(params_analytic['eta0'])
 
 
 
