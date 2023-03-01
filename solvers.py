@@ -432,7 +432,214 @@ def forward_backward_time_scheme(params):
     v - the meridional velocity
     eta - the free surface height
     """
-    # set up the parameters
+
+    # set up the constants first
+    f0 = params['f0']
+    g = params['g']
+    rho = params['rho']
+    H = params['H']
+    tau0 = params['tau0']
+    tau_meridional = params['tau_meridional']
+    beta = params['beta']
+    gamma = params['gamma']
+    L = params['L']
+
+    # set up the grid spacing
+    dx = params['dx']
+    dy = params['dy']
+    x_points = params['x_points']
+    y_points = params['y_points']
+
+    # set up the time step
+    dt = params['dt']
+    nt = params['nt']
+
+    # set up high resolution if else
+    use_higher_resolution = params['use_higher_resolution']
+
+    # set up the task number
+    task = params['task']
+
+    # define the x and y arrays for plotting
+    x_plotting = np.arange(x_points + 1)*dx
+    y_plotting = np.arange(y_points + 1)*dy
+    # for eta
+    x_plotting_eta = np.arange(x_points)*dx
+
+    # set up y arrays for the u grid and v grid
+    y_u = np.arange(y_points)*dy
+    y_v = np.arange(y_points + 1)*dy
+
+    # define the 2D arrays for the zonal velocity, meridional velocity and free surface height
+    u = np.zeros((y_points, x_points + 1)) # zonal velocity
+    v = np.zeros((y_points + 1, x_points)) # meridional velocity
+    eta = np.zeros((y_points, x_points))  # free surface height
+
+    # set up empty arrays for energy
+    energy_array = np.zeros(0)
+    energy_difference = np.zeros(0)
+
+    # set up an empty time array
+    time_array = np.empty(0)
+ 
+    # define the zonal and meridional wind stress
+    tau_zonal = zonal_wind_stress(y_u, x_points, L, tau0)
+    tau_meridional = params['tau_meridional']
+
+    # compute the values for the coriolis parameter
+    coriolis_u, coriolis_v = coriolis(y_u, y_v, x_points, f0, beta)
+
+    # set up the analytical solution for the full and half grid spacing
+    if use_higher_resolution == 'True':
+        u_analytic, v_analytic, eta_analytic = analytic_solution(params_analytic_higher_res)
+    else:
+        u_analytic, v_analytic, eta_analytic = analytic_solution(params_analytic)
+
+    # loop over time with intervals of 2 up to nt-2 for the forward-backward time scheme
+    for i in range(0, nt - 2, 2):
+
+        # for the energy solution, we want to interpolate the u and v onto the eta grid
+        u_eta = (u[:, 1:] + u[:, :-1])/2
+        v_eta = (v[1:, :] + v[:-1, :])/2
+
+        # for the energy solution, we want to know the difference between the numerical and the analytical solution
+        u_diff = u_analytic - u_eta
+        v_diff = v_analytic - v_eta
+        eta_diff = eta_analytic - eta
+
+        # calculate the energy at the current time step
+        energy_array = np.append(energy_array, energy(u_eta, v_eta, eta, dx, dy, rho, H, g))
+        energy_difference = np.append(energy_difference, energy(u_diff, v_diff, eta_diff, dx, dy, rho, H, g))
+
+        # set up the time array
+        time_array = np.append(time_array, [i*dt])
+
+        # compute eta at the next time step
+        # set up the u and v indexes to improve readabilty
+        u_j_i = u[:, 1:]
+        u_j_iminus1 = u[:, :-1]
+        v_j_i = v[1:, :]
+        v_j_iminus1 = v[:-1, :]
+
+        # compute eta at the next time step
+        eta_next = eta - H*dt*((u_j_i - u_j_iminus1)/dx + (v_j_i - v_j_iminus1)/dy)
+
+        # run the eta function to compute the gradient of eta in the x and y directions
+        deta_dx, deta_dy = eta_gradient(eta_next, x_points, y_points, dx, dy)
+
+        # Compute the zonal velocity at the next time step
+        u_next = u + coriolis_u*dt*v_to_ugrid_mapping(v, y_points) - g*dt*deta_dx - gamma*dt*u + (tau_zonal/(rho*H))*dt
+        # reset the u boundary conditions (no-slip)
+        u_next[:, 0] = 0
+        u_next[:, x_points] = 0
+
+        # Compute the meridional velocity at the next time step
+        v_next = v - coriolis_v*dt*u_to_vgrid_mapping(u_next, x_points) - g*dt*deta_dy - gamma*dt*v + (tau_meridional/(rho*H))*dt # notice the use of u_next here
+        # reset the v boundary conditions (no-slip)
+        v_next[0, :] = 0
+        v_next[y_points, :] = 0
+
+        # compute eta at the next next time step
+        # set up the u and v indexes to improve readabilty
+        u_j_i_next = u_next[:, 1:]
+        u_j_iminus1_next = u_next[:, :-1]
+        v_j_i_next = v_next[1:, :]
+        v_j_iminus1_next = v_next[:-1, :]
+
+        # compute eta at the next next time step
+        eta_next2 = eta_next - H*dt*((u_j_i_next - u_j_iminus1_next)/dx + (v_j_i_next - v_j_iminus1_next)/dy)
+
+        # run the eta function to compute the gradient of eta in the x and y directions
+        deta_dx_next2, deta_dy_next2 = eta_gradient(eta_next2, x_points, y_points, dx, dy)
+
+        # now the forward-backward time scheme swaps round, so we now calculate v before u
+        # Compute the meridional velocity at the next next time step
+        v_next2 = v_next - coriolis_v*dt*u_to_vgrid_mapping(u_next, x_points) - g*dt*deta_dy_next2 - gamma*dt*v_next + (tau_meridional/(rho*H))*dt
+        # reset the v boundary conditions (no-slip)
+        v_next2[0, :] = 0
+        v_next2[y_points, :] = 0
+
+        # Compute the zonal velocity at the next next time step
+        u_next2 = u_next + coriolis_u*dt*v_to_ugrid_mapping(v_next2, y_points) - g*dt*deta_dx_next2 - gamma*dt*u_next + (tau_zonal/(rho*H))*dt # notice the use of v_next2 here
+        # reset the u boundary conditions (no-slip)
+        u_next2[:, 0] = 0
+        u_next2[:, x_points] = 0
+
+        # update the u, v and eta arrays with the value at the next next time step
+        u = u_next2.copy()
+        v = v_next2.copy()
+        eta = eta_next2.copy()
+
+    # compute the value of eta0 for use in the analytic solution above
+    print('eta0 = ', eta[int(y_points/2), 0])
+
+    # create the plots for each task
+
+    if task == 'D1':
+        # plot u against x for for the southern edge of the basin
+        fig1, ax1 = plt.subplots(figsize=(6, 6))
+        ax1.plot(x_plotting/1000, u[0, :], label='numerical u')
+        # set the x label
+        ax1.set_xlabel('x (km)')
+        # set the y label
+        ax1.set_ylabel('u (m/s)')
+        # set the title
+        ax1.set_title('Zonal velocities at the southern edge of the basin')
+        # save the plot
+        fig1.savefig(params['u_fig_name'] + '.png')
+
+        # plot v against y for for the western edge of the basin
+        fig2, ax2 = plt.subplots(figsize=(6, 6))
+        ax2.plot(y_plotting/1000, v[:, 1], label='numerical v')
+        # set the x label
+        ax2.set_xlabel('y (km)')
+        # set the y label
+        ax2.set_ylabel('v (m/s)')
+        # set the title
+        ax2.set_title('Meridional velocities at the western edge of the basin')
+        # save the plot
+        fig2.savefig(params['v_fig_name'] + '.png')
+
+        # plot eta against x for for the middle of the gyre
+        fig3, ax3 = plt.subplots(figsize=(6, 6))
+        ax3.plot(x_plotting_eta/1000, eta[int(y_points/2), :], label='numerical eta')
+        # set the x label
+        ax3.set_xlabel('x (km)')
+        # set the y label
+        ax3.set_ylabel('eta (m)')
+        # set the title
+        ax3.set_title('Surface displacement at the middle of the gyre')
+        # save the plot
+        fig3.savefig(params['eta_fig_name'] + '.png')
+
+
+        # create a 2D contour plot of eta
+        fig4, ax4 = plt.subplots(figsize=(6, 6))
+        # plot the contour
+        contour = ax4.contourf(x_plotting/1000, y_plotting/1000, eta[:,:], 100, cmap='jet')
+        # set the x label
+        ax4.set_xlabel('x (km)')
+        # set the y label
+        ax4.set_ylabel('y (km)')
+        # add a colour bar
+        fig4.colorbar(contour)
+        # set the title
+        ax4.set_title('Surface displacement contour field')
+        # save the plot
+        fig4.savefig(params['eta_contour_fig_name'] + '.png')
+
+        plt.show()
+
+
+
+
+
+
+
+
+
+    
+
 
 
 
