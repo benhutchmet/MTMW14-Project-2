@@ -180,6 +180,9 @@ def analytic_solution(params_analytic):
     return u, v, eta, x, y
 
 # define a function for the plotting in Task C
+
+# PERHAPS IMPLEMENT THIS AS AN OPTIONAL ARGUMENT IN THE FUNCTION ABOVE?
+
 def plotting_taskC(params_analytic):
     """Function for plotting the results of the analytic solution for the ocean gyre simulation.
     
@@ -574,7 +577,7 @@ def forward_backward_time_scheme(params):
 
     # create the plots for each task
 
-    if task == 'D1':
+    if task == 'D1' or 'D2':
         # plot u against x for for the southern edge of the basin
         fig1, ax1 = plt.subplots(figsize=(6, 6))
         ax1.plot(x_plotting/1000, u[0, :], label='numerical u')
@@ -629,6 +632,57 @@ def forward_backward_time_scheme(params):
 
         plt.show()
 
+    if task == 'D3':
+        # plot the results as three seperate plots, with a colour bar for each
+        # create a 2D contour plot of eta
+
+        # plot the u velocity
+        fig5, ax5 = plt.subplots(figsize=(10, 8))
+        # plot the contour
+        contour = ax5.pcolormesh(x_plotting/1000, y_plotting/1000, u_diff[:,:], cmap='jet')
+        # set the x label
+        ax5.set_xlabel('x (km)')
+        # set the y label
+        ax5.set_ylabel('y (km)')
+        # add a colour bar
+        fig5.colorbar(contour)
+        # set the title
+        ax5.set_title('Zonal velocity difference')
+        # save the figure
+        fig5.savefig(params['u_fig_name'] + '.png')
+
+        # plot the v velocity
+        fig6, ax6 = plt.subplots(figsize=(10, 8))
+        # plot the contour
+        contour = ax6.pcolormesh(x_plotting/1000, y_plotting/1000, v_diff[:,:], cmap='jet')
+        # set the x label
+        ax6.set_xlabel('x (km)')
+        # set the y label
+        ax6.set_ylabel('y (km)')
+        # add a colour bar
+        fig6.colorbar(contour)
+        # set the title
+        ax6.set_title('Meridional velocity difference')
+        # save the figure
+        fig6.savefig(params['v_fig_name'] + '.png')
+
+        # plot the surface displacement
+        fig7, ax7 = plt.subplots(figsize=(10, 8))
+        # plot the contour
+        contour = ax7.pcolormesh(x_plotting/1000, y_plotting/1000, eta_diff[:,:], cmap='jet')
+        # set the x label
+        ax7.set_xlabel('x (km)')
+        # set the y label
+        ax7.set_ylabel('y (km)')
+        # add a colour bar
+        fig7.colorbar(contour)
+        # set the title
+        ax7.set_title('Surface displacement difference')
+        # save the figure
+        fig7.savefig(params['eta_fig_name'] + '.png')
+
+        plt.show()
+
 
 # test that the correct dictionary is being used
 
@@ -640,9 +694,16 @@ def forward_backward_time_scheme(params):
 #print(params_analytic['eta0'])
 
 # check that the corect dictionary is loaded
-print(params_numerical_TaskD_SteadyState)
+#print(params_numerical_TaskD_SteadyState)
 
+# run the numerical solution for Task D steady state
+#forward_backward_time_scheme(params_numerical_TaskD_SteadyState)
 
+# test the values of the parameters for task D3
+print(params_numerical_TaskD_differences)
+
+# test task d3
+#forward_backward_time_scheme(params_numerical_TaskD_differences)
 
     
 
