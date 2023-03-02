@@ -637,7 +637,10 @@ def forward_backward_time_scheme(params):
 # test the numerical solution
 #forward_backward_time_scheme(params_numerical_TaskD_1Day)
 
-print(params_analytic['eta0'])
+#print(params_analytic['eta0'])
+
+# check that the corect dictionary is loaded
+print(params_numerical_TaskD_SteadyState)
 
 
 
