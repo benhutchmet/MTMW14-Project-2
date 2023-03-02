@@ -47,9 +47,9 @@ params_analytic_highest_res = {'f0': 10**-4, # coriolis paramater (s^-1)
                                 'L': 10**6, # dimensions of square domain (m)
                                 'eta0': -0.0068, # unknown constant of integration -
                                 # updated with value at steady state eta(0,L/2)
-                                'gridbox_size': 5000, # spacing of square grid cells (m)
-                                'x_points': 200, # number of points in the x domain
-                                'y_points': 200, # number of points in the y domain
+                                'gridbox_size': 10000, # spacing of square grid cells (m)
+                                'x_points': 100, # number of points in the x domain
+                                'y_points': 100, # number of points in the y domain
                                 'u_fig_name': 'u_analytic_highest_res', # name for the u figure
                                 'v_fig_name': 'v_analytic_highest_res', # name for the v figure
                                 'eta_fig_name': 'eta_analytic_highest_res'} # name for the eta figure
@@ -114,5 +114,28 @@ params_numerical_TaskE_energy = params_numerical_TaskD_SteadyState | {
                                     'energy_fig_name': 'energy_TaskE', # name for the energy figure
                                     'energy_difference_fig_name': 'energy_difference_TaskE', # name for the energy differences figure
                                     }
+
+params_numerical_TaskE_energy_test = {'tau0': 0.2,  # Wind stress constant
+                           'tau_meridional': 0,  # meridional wind stress (assumed zero for now)
+                           'f0': 10 ** -4,  # Coriolis parameter (s-1)
+                           'beta': 10 ** -11,  # Beta value (m-1s-1)
+                           'g': 10,  # Gravitational constant (ms-2)
+                           'gamma': 10 ** -6,  # Linear drag coefficient (s-1)
+                           'rho': 1000,  # Seawater density (kgm-3)
+                           'H': 1000,  # Resting depth of fluid, assumed constant (m)
+                           'L': 10 ** 6,  # Length of domain (m)
+                           'dt': 50,  # time step (conservative based pon average flow speeds in WBC- Stommel)
+                           'nt': int(86400/50)*50,  # Number of timesteps (to ensure a 1 day model runtime)
+                           'x_points': 100,  # number of grid points in x
+                           'y_points': 100,  # number of grid points in y
+                           'dx': 10 ** 4,  # grid spacing in x
+                           'dy': 10 ** 4,  # grid spacing in y
+                           'eta_fig_name': 'eta_t=50days',  # name of saved figure for eta output
+                           'u_fig_name': 'u_t=50days',  # name of saved figure for u output
+                           'v_fig_name': 'v_t=50days',
+                           'use_higher_resolution': 'True',
+                           'task': 'E',
+                           'eta_contour_fig_name': 'eta_contour_plot'}  # name of saved figure for v output
+
   
-  
+

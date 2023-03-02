@@ -492,7 +492,7 @@ def forward_backward_time_scheme(params):
 
     # set up the analytical solution for the full and half grid spacing
     if use_higher_resolution == 'True':
-        u_analytic, v_analytic, eta_analytic, x, y = analytic_solution(params_analytic_higher_res)
+        u_analytic, v_analytic, eta_analytic, x, y = analytic_solution(params_analytic_highest_res)
     else:
         u_analytic, v_analytic, eta_analytic, x, y = analytic_solution(params_analytic)
 
@@ -745,9 +745,12 @@ def forward_backward_time_scheme(params):
 #print(params_numerical_TaskE_energy)
 
 # test task E
-forward_backward_time_scheme(params_numerical_TaskE_energy)
-    
+#forward_backward_time_scheme(params_numerical_TaskE_energy)
 
+#print(params_numerical_TaskE_energy_test)
+    
+# test task E
+forward_backward_time_scheme(params_numerical_TaskE_energy_test)
 
 
 
