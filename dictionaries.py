@@ -1,5 +1,3 @@
-# %%
-
 """Dictionaries containing the constants and paramaters needed for the tasks"""
 
 
@@ -96,7 +94,7 @@ params_numerical_TaskD_SteadyState = {'f0': 10**-4, # coriolis paramater (s^-1)
                                     'x_points': 10, # number of points in the x domain
                                     'y_points': 10, # number of points in the y domain
                                     'dt': 480, # time step (s) - ambitious (approx 0.7 below CFL criteria)
-                                    'nt': int(40 * 86400/480), # number of time steps - for 40 days
+                                    'nt': int(100 * 86400/480), # number of time steps - for 50 days
                                     'u_fig_name': 'u_numerical_TaskD_SteadyState', # name for the u figure
                                     'v_fig_name': 'v_numerical_TaskD_SteadyState', # name for the v figure
                                     'eta_fig_name': 'eta_numerical_TaskD_SteadyState', # name for the eta figure
@@ -104,4 +102,10 @@ params_numerical_TaskD_SteadyState = {'f0': 10**-4, # coriolis paramater (s^-1)
                                     'use_higher_resolution': 'False', # use higher resolution grid'
                                     'task': 'D2' # Task D2
                                     }
-# %%
+
+params_numerical_TaskD_differences = params_numerical_TaskD_SteadyState | {'u_fig_name': 'u_numerical_TaskD_differences', # name for the u figure
+                                    'v_fig_name': 'v_numerical_TaskD_differences', # name for the v figure
+                                    'eta_fig_name': 'eta_numerical_TaskD_differences', # name for the eta figure
+                                    'task': 'D3' # Task D3
+                                    }
+  
