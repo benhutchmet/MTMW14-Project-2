@@ -108,4 +108,11 @@ params_numerical_TaskD_differences = params_numerical_TaskD_SteadyState | {'u_fi
                                     'eta_fig_name': 'eta_numerical_TaskD_differences', # name for the eta figure
                                     'task': 'D3' # Task D3
                                     }
+
+params_numerical_TaskE_energy = params_numerical_TaskD_SteadyState | {
+                                    'task': 'E', # Task E energy
+                                    'energy_fig_name': 'energy_TaskE', # name for the energy figure
+                                    'energy_difference_fig_name': 'energy_difference_TaskE', # name for the energy differences figure
+                                    }
+  
   
