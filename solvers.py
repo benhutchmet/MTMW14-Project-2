@@ -496,6 +496,9 @@ def forward_backward_time_scheme(params):
     else:
         u_analytic, v_analytic, eta_analytic, x, y = analytic_solution(params_analytic)
 
+    # compute the energy of the analytical solution
+    energy_analytic = energy(u_analytic, v_analytic, eta_analytic, dx, dy, rho, H, g)
+
     # loop over time with intervals of 2 up to nt-2 for the forward-backward time scheme
     for i in range(0, nt - 2, 2):
 
@@ -682,6 +685,39 @@ def forward_backward_time_scheme(params):
         fig7.savefig(params['eta_fig_name'] + '.png')
 
         plt.show()
+    
+    if task == 'E':
+        # we want to plot the energy against time
+
+        # plot the energy against time
+        fig8, ax8 = plt.subplots(figsize=(6, 6))
+        ax8.plot(time_array, energy_array, label='numerical energy', color='blue')
+        # also plot the analytical solution as a horizontal line
+        ax8.axhline(y=energy_analytic/2, label='analytical energy', color='red')
+        # set the x label
+        ax8.set_xlabel('time (s)')
+        # set the y label
+        ax8.set_ylabel('energy')
+        # set the title
+        ax8.set_title('Energy of the numerical solution')
+        # set up the legend
+        ax8.legend()
+        # save the plot
+        fig8.savefig(params['energy_fig_name'] + '.png')
+
+        # plot the energy differences against time
+        fig9, ax9 = plt.subplots(figsize=(6, 6))
+        ax9.plot(time_array, energy_difference, label='energy difference')
+        # set the x label
+        ax9.set_xlabel('time (s)')
+        # set the y label
+        ax9.set_ylabel('energy difference')
+        # set the title
+        ax9.set_title('Energy difference between the numerical and analytical solutions')
+        # save the plot
+        fig9.savefig(params['energy_difference_fig_name'] + '.png')
+
+        plt.show()
 
 
 # test that the correct dictionary is being used
@@ -700,11 +736,16 @@ def forward_backward_time_scheme(params):
 #forward_backward_time_scheme(params_numerical_TaskD_SteadyState)
 
 # test the values of the parameters for task D3
-print(params_numerical_TaskD_differences)
+#print(params_numerical_TaskD_differences)
 
 # test task d3
 #forward_backward_time_scheme(params_numerical_TaskD_differences)
 
+# test the values of the parameters for task E
+#print(params_numerical_TaskE_energy)
+
+# test task E
+forward_backward_time_scheme(params_numerical_TaskE_energy)
     
 
 
