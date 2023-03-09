@@ -106,35 +106,39 @@ params_numerical_TaskD_SteadyState = {'f0': 10**-4, # coriolis paramater (s^-1)
                                     }
 
 # create a dictionary of parameters for the numerical solution for half the resolution
-params_numerical_TaskD_SteadyState_highres_50 = params_numerical_TaskD_SteadyState | {'dx': 50000, # x grid spacing (m) 
+params_numerical_TaskE_SteadyState_highres_50 = params_numerical_TaskD_SteadyState | {'dx': 50000, # x grid spacing (m) 
                                                                                       'dy': 50000, # y grid spacing (m) 
                                                                                       'x_points': 20, # number of points in the x domain 
                                                                                       'y_points': 20, # number of points in the y domain 
                                                                                       'use_higher_resolution': 'True', # use higher resolution grid' , 
                                                                                       'use_highest_resolution': 'False', # use highest resolution grid'
-                                                                                      'task': 'E2' # Task D2 
+                                                                                      'task': 'E', # Task D2 
                                                                                       'dt': 240, # time step (s) - ambitious (approx 0.7 below CFL criteria)
                                                                                       'nt': int(100 * 86400/240), # number of time steps - for 50 days}
                                                                                       'u_fig_name': 'u_numerical_highres_50', # name for the u figure
                                                                                       'v_fig_name': 'v_numerical_highres_50', # name for the v figure
                                                                                       'eta_fig_name': 'eta_numerical_highres_50', # name for the eta figure
                                                                                       'eta_contour_fig_name': 'eta_contour_numerical_highres_50', # name for the 2D eta contour figure
+                                                                                       'energy_fig_name': 'energy_numerical_highres_50', # name for the energy figure
+                                                                                       'energy_difference_fig_name': 'energy_difference_numerical_highres_50' # name for the energy difference figure'
 }
 
 # create a dictionary of parameters for the numerical solution for the highest resolution - 10km
-params_numerical_TaskD_SteadyState_highres_10 = params_numerical_TaskD_SteadyState | {'dx': 10000, # x grid spacing (m)
+params_numerical_TaskE_SteadyState_highres_10 = params_numerical_TaskD_SteadyState | {'dx': 10000, # x grid spacing (m)
                                                                                        'dy': 10000, # y grid spacing (m)
                                                                                        'x_points': 100, # number of points in the x domain
                                                                                        'y_points': 100, # number of points in the y domain
                                                                                        'use_higher_resolution': 'False', # use higher resolution grid
                                                                                        'use_highest_resolution': 'True', # use highest resolution grid
-                                                                                       'task': 'E3' # Task D2
+                                                                                       'task': 'E', # Task D2
                                                                                        'dt': 40, # time step (s) - conservative (approx 0.6 below CFL criteria)
                                                                                        'nt': int(100 * 86400/40), # number of time steps - for 50 days
                                                                                        'u_fig_name': 'u_numerical_highres_10', # name for the u figure
                                                                                        'v_fig_name': 'v_numerical_highres_10', # name for the v figure
                                                                                        'eta_fig_name': 'eta_numerical_highres_10', # name for the eta figure
                                                                                        'eta_contour_fig_name': 'eta_contour_numerical_highres_10', # name for the 2D eta contour figure
+                                                                                       'energy_fig_name': 'energy_numerical_highres_10', # name for the energy figure
+                                                                                       'energy_difference_fig_name': 'energy_difference_numerical_highres_10' # name for the energy difference figure'                                                                                   
 }
 
 params_numerical_TaskD_differences = params_numerical_TaskD_SteadyState | {'u_fig_name': 'u_numerical_TaskD_differences', # name for the u figure

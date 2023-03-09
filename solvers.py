@@ -492,8 +492,14 @@ def forward_backward_time_scheme(params):
 
     # set up the analytical solution for the full and half grid spacing
     if use_higher_resolution == 'True':
+        # Analytic solution with higher resolution
+        u_analytic, v_analytic, eta_analytic, x, y = analytic_solution(params_analytic_higher_res)
+    # else if use_highest_resolution == 'True': then use the highest resolution
+    elif use_highest_resolution == 'True':
+        # Analytic solution with highest resolution
         u_analytic, v_analytic, eta_analytic, x, y = analytic_solution(params_analytic_highest_res)
     else:
+        # Analytic solution with default resolution
         u_analytic, v_analytic, eta_analytic, x, y = analytic_solution(params_analytic)
 
     # compute the energy of the analytical solution
@@ -693,7 +699,7 @@ def forward_backward_time_scheme(params):
         fig8, ax8 = plt.subplots(figsize=(6, 6))
         ax8.plot(time_array, energy_array, label='numerical energy', color='blue')
         # also plot the analytical solution as a horizontal line
-        ax8.axhline(y=energy_analytic/2, label='analytical energy', color='red')
+        ax8.axhline(y=energy_analytic, label='analytical energy', color='red')
         # set the x label
         ax8.set_xlabel('time (s)')
         # set the y label
@@ -702,6 +708,10 @@ def forward_backward_time_scheme(params):
         ax8.set_title('Energy of the numerical solution')
         # set up the legend
         ax8.legend()
+
+        print('Steady state energy value is', energy_array[-1],'J')
+        # from this, looks like the energy is alright
+
         # save the plot
         fig8.savefig(params['energy_fig_name'] + '.png')
 
@@ -750,8 +760,15 @@ def forward_backward_time_scheme(params):
 #print(params_numerical_TaskE_energy_test)
     
 # test task E
-forward_backward_time_scheme(params_numerical_TaskE_energy_test)
+#forward_backward_time_scheme(params_numerical_TaskE_energy_test)
 
+
+# test that the correct dictionaries are being used
+#print(params_numerical_TaskE_SteadyState_highres_50)
+#print(params_numerical_TaskE_SteadyState_highres_10)
+
+# test task E with the higher res (50km) grid
+forward_backward_time_scheme(params_numerical_TaskE_SteadyState_highres_50)
 
 
 
