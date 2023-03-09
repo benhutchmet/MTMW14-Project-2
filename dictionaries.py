@@ -28,7 +28,7 @@ params_analytic_higher_res = {'f0': 10**-4, # coriolis paramater (s^-1)
                                 'H': 1000, # resting depth of fluid (m)
                                 'tau0': 0.2, # wind stress vector constant (N m^-2)
                                 'L': 10**6, # dimensions of square domain (m)
-                                'eta0': -0.0068, # unknown constant of integration -
+                                'eta0': -0.0435, # unknown constant of integration -
                                 # updated with value at steady state eta(0,L/2)
                                 'gridbox_size': 50000, # spacing of square grid cells (m)
                                 'x_points': 20, # number of points in the x domain

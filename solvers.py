@@ -455,8 +455,9 @@ def forward_backward_time_scheme(params):
     dt = params['dt']
     nt = params['nt']
 
-    # set up high resolution if else
+    # set up high and highest resolution if else
     use_higher_resolution = params['use_higher_resolution']
+    use_highest_resolution = params['use_highest_resolution']
 
     # set up the task number
     task = params['task']
@@ -479,6 +480,7 @@ def forward_backward_time_scheme(params):
     # set up empty arrays for energy
     energy_array = np.zeros(0)
     energy_difference = np.zeros(0)
+    energy_analytic = np.zeros(0)
 
     # set up an empty time array
     time_array = np.empty(0)
@@ -493,17 +495,17 @@ def forward_backward_time_scheme(params):
     # set up the analytical solution for the full and half grid spacing
     if use_higher_resolution == 'True':
         # Analytic solution with higher resolution
+        print('using higher resolution')
         u_analytic, v_analytic, eta_analytic, x, y = analytic_solution(params_analytic_higher_res)
     # else if use_highest_resolution == 'True': then use the highest resolution
     elif use_highest_resolution == 'True':
+        print('using highest resolution')
         # Analytic solution with highest resolution
         u_analytic, v_analytic, eta_analytic, x, y = analytic_solution(params_analytic_highest_res)
     else:
+        print('using default resolution')
         # Analytic solution with default resolution
         u_analytic, v_analytic, eta_analytic, x, y = analytic_solution(params_analytic)
-
-    # compute the energy of the analytical solution
-    energy_analytic = energy(u_analytic, v_analytic, eta_analytic, dx, dy, rho, H, g)
 
     # loop over time with intervals of 2 up to nt-2 for the forward-backward time scheme
     for i in range(0, nt - 2, 2):
@@ -521,6 +523,11 @@ def forward_backward_time_scheme(params):
         energy_array = np.append(energy_array, energy(u_eta, v_eta, eta, dx, dy, rho, H, g))
         energy_difference = np.append(energy_difference, energy(u_diff, v_diff, eta_diff, dx, dy, rho, H, g))
 
+        # calculate the analytic energy at the current time step
+        # THIS SEEMS TOO LARGE - WHY IS THIS?
+        # BUT THE ENERGY DIFFERENCE LOOKS ALIRGHT
+        energy_analytic = np.append(energy_analytic, energy(u_analytic, v_analytic, eta_analytic, dx, dy, rho, H, g))
+        
         # set up the time array
         time_array = np.append(time_array, [i*dt])
 
@@ -695,11 +702,14 @@ def forward_backward_time_scheme(params):
     if task == 'E':
         # we want to plot the energy against time
 
+        print("analytic energy is ", energy_analytic)
+        print("numerical energy is ", energy_array[-1])
+
         # plot the energy against time
         fig8, ax8 = plt.subplots(figsize=(6, 6))
         ax8.plot(time_array, energy_array, label='numerical energy', color='blue')
         # also plot the analytical solution as a horizontal line
-        ax8.axhline(y=energy_analytic, label='analytical energy', color='red')
+        ax8.plot(time_array, energy_analytic, label='analytical energy', color='red')
         # set the x label
         ax8.set_xlabel('time (s)')
         # set the y label
@@ -767,11 +777,314 @@ def forward_backward_time_scheme(params):
 #print(params_numerical_TaskE_SteadyState_highres_50)
 #print(params_numerical_TaskE_SteadyState_highres_10)
 
+# check that the corect dictionary is loaded
+#print(params_analytic_higher_res['eta0'])
+
+
 # test task E with the higher res (50km) grid
-forward_backward_time_scheme(params_numerical_TaskE_SteadyState_highres_50)
+#forward_backward_time_scheme(params_numerical_TaskE_SteadyState_highres_50)
+
+# test task E with the higher res (10km) grid
+#forward_backward_time_scheme(params_numerical_TaskE_SteadyState_highres_10)
+
+# for the optional task G4, we want to rewrite the solver to use the Runge-Kutta method
+
+
+# define the function to solve the shallow water equations
+def shallow_water_solver(params, eta, u, v):
+    """This function solves the shallow water equations for our domain."""
+
+    # get the constants from the dictionary
+    H = params['H']
+    g = params['g']
+    rho = params['rho']
+    tau_meridional = params['tau_meridional']
+    gamma = params['gamma']
+    tau0 = params['tau0']
+    L = params['L']
+    f0 = params['f0']
+    beta = params['beta']
+    
+    # define the grid spacing
+    dx = params['dx']
+    dy = params['dy']
+    x_points = params['x_points']
+    y_points = params['y_points']
+
+    # define the time step
+    dt = params['dt']
+
+    # set up the y arrays for u and v grid
+    y_u = np.arange(y_points)*dy
+    y_v = np.arange(y_points+1)*dy
+
+    # compute the values for the coriolis parameter
+    coriolis_u, coriolis_v = coriolis(y_u, y_v, x_points, f0, beta)
+
+    # compute the values for the zonal wind stress
+    tau_zonal = zonal_wind_stress(y_u, x_points, L, tau0)
+
+    # compute eta at the next time step
+    # set up the u and v indexes to improve readability
+    u_j_i = u[:, 1:]
+    u_j_iminus1 = u[:, :-1]
+    v_j_i = v[1:, :]
+    v_j_iminus1 = v[:-1, :]
+
+    # compute eta at the next time step
+    eta_next = eta + H*dt*((u_j_i - u_j_iminus1)/dx + (v_j_i - v_j_iminus1)/dy)
+
+    # run the eta function to compute the gradient of eta
+    deta_dx, deta_dy = eta_gradient(eta, x_points, y_points, dx, dy)
+
+    # compute u at the next time step
+    u_next = u + coriolis_u*dt*v_to_ugrid_mapping(v, y_points) - g*dt*deta_dx - gamma*dt*u + (tau_zonal/(rho*H))*dt
+
+    # reset the boundary conditions for u (no slip)
+    u_next[:,0] = 0
+    u_next[:, x_points] = 0
+
+    # compute v at the next time step
+    v_next = v - coriolis_v*dt*u_to_vgrid_mapping(u, x_points) - g*dt*deta_dy - gamma*dt*v + (tau_meridional/(rho*H))*dt
+
+    # reset the boundary conditions for v (no slip)
+    v_next[0, :] = 0
+    v_next[y_points, :] = 0
+
+    # update the eta, u and v arrays
+    eta = eta_next.copy()
+    u = u_next.copy()
+    v = v_next.copy()
+
+    return eta, u, v
 
 
 
+def rk4(params):
+    """This function solves the shallow water equations for our domain using the Runge-Kutta method.
+    
+    Inputs:
+    params: a dictionary containing the parameters for the simulation
+        
+    Outputs:
+    None
+    """
+    # set up the constants first
+    f0 = params['f0']
+    g = params['g']
+    H = params['H']
+    tau0 = params['tau0']
+    tau_meridional = params['tau_meridional']
+    beta = params['beta']
+    gamma = params['gamma']
+    rho = params['rho']
+    L = params['L']
 
+    # set up the grid
+    dx = params['dx']
+    dy = params['dy']
+    x_points = params['x_points']
+    y_points = params['y_points']
+
+    # set up the time step
+    dt = params['dt']
+    nt = params['nt']
+
+    # set up the high resolution if else
+    use_higher_resolution = params['use_higher_resolution']
+    use_highest_resolution = params['use_highest_resolution']
+
+    # set up the task number
+    task = params['task']
+
+    # define the x and y arrays for plotting
+    x_plotting = np.arange(x_points+1)*dx
+    y_plotting = np.arange(y_points+1)*dy
+    x_plotting_eta = np.arange(x_points)*dx
+
+    # set up the y arrays for u and v grid
+    y_u = np.arange(y_points)*dy
+    y_v = np.arange(y_points+1)*dy
+
+    # define the 2D arrays for the variables
+    u = np.zeros((y_points, x_points+1)) # zonal velocity
+    v = np.zeros((y_points+1, x_points)) # meridional velocity
+    eta = np.zeros((y_points, x_points)) # free surface height
+
+    # set up empty arrays for energy
+    energy_array = np.zeros(0)
+    energy_analytic = np.zeros(0)
+    energy_difference = np.zeros(0)
+
+    # set up empty arrays for the time
+    time_array = np.empty(0)
+
+    # define the zonal and meridional wind stress
+    tau_zonal = zonal_wind_stress(y_u, x_points, L, tau0)
+    tau_meridional = params['tau_meridional']
+
+    # compute the values for the coriolis parameter
+    coriolis_u, coriolis_v = coriolis(y_u, y_v, x_points, f0, beta)
+
+    # set up the analytical solution for the full and half grid spacing
+    if use_higher_resolution == 'True':
+        # Analytic solution with higher resolution
+        print('using higher resolution')
+        u_analytic, v_analytic, eta_analytic, x, y = analytic_solution(params_analytic_higher_res)
+    # else if use_highest_resolution == 'True': then use the highest resolution
+    elif use_highest_resolution == 'True':
+        print('using highest resolution')
+        # Analytic solution with highest resolution
+        u_analytic, v_analytic, eta_analytic, x, y = analytic_solution(params_analytic_highest_res)
+    else:
+        print('using default resolution')
+        # Analytic solution with default resolution
+        u_analytic, v_analytic, eta_analytic, x, y = analytic_solution(params_analytic)
+
+    # loop over the time steps
+    for i in range(0, nt, 1):
+
+        # interpolate u and v onto the eta grid for energy calculation
+        u_eta =(u[:, 1:] + u[:, :-1])/2
+        v_eta = (v[1:, :] + v[:-1, :])/2
+
+        # calculate the difference between the numerical and analytic
+        u_diff = u_analytic - u_eta
+        v_diff = v_analytic - v_eta
+        eta_diff = eta_analytic - eta
+
+        # calculate the energy
+        energy_array = np.append(energy_array, energy(u_eta, v_eta, eta, dx, dy, rho, H, g))
+
+        # energy difference
+        energy_difference = np.append(energy_difference, energy(u_diff, v_diff, eta_diff, dx, dy, rho, H, g))
+
+        # analytic energy
+        energy_analytic = np.append(energy_analytic, energy(u_analytic, v_analytic, eta_analytic, dx, dy, rho, H, g))
+
+        # append the time
+        time_array = np.append(time_array, [i*dt])
+
+        # compute eta at the next time step
+        # set up the u and v indexes to improve readability
+        u_j_i = u[:, 1:]
+        u_j_iminus1 = u[:, :-1]
+        v_j_i = v[1:, :]
+        v_j_iminus1 = v[:-1, :]
+
+        # use the Runge-Kutta method to compute eta, u and v
+        # compute the h
+        h = dt
+        k1 = h*shallow_water_solver(params, eta, u, v)
+        k2 = h*shallow_water_solver(params, eta + k1[0]/2, u + k1[1]/2, v + k1[2]/2)
+        k3 = h*shallow_water_solver(params, eta + k2[0]/2, u + k2[1]/2, v + k2[2]/2)
+        k4 = h*shallow_water_solver(params, eta + k3[0], u + k3[1], v + k3[2])
+
+        # update the eta, u and v arrays
+        eta = eta + (k1[0] + 2*k2[0] + 2*k3[0] + k4[0])/6
+        u = u + (k1[1] + 2*k2[1] + 2*k3[1] + k4[1])/6
+        v = v + (k1[2] + 2*k2[2] + 2*k3[2] + k4[2])/6
+
+        # compute the value of eta0 for use in the analytic solution above
+    print('eta0 = ', eta[int(y_points/2), 0])
+
+    # create the plots for each task
+
+    if task == 'D1' or 'D2':
+        # plot u against x for for the southern edge of the basin
+        fig1, ax1 = plt.subplots(figsize=(6, 6))
+        ax1.plot(x_plotting/1000, u[0, :], label='numerical u')
+        # set the x label
+        ax1.set_xlabel('x (km)')
+        # set the y label
+        ax1.set_ylabel('u (m/s)')
+        # set the title
+        ax1.set_title('Zonal velocities at the southern edge of the basin')
+        # save the plot
+        fig1.savefig(params['u_fig_name'] + '.png')
+
+        # plot v against y for for the western edge of the basin
+        fig2, ax2 = plt.subplots(figsize=(6, 6))
+        ax2.plot(y_plotting/1000, v[:, 1], label='numerical v')
+        # set the x label
+        ax2.set_xlabel('y (km)')
+        # set the y label
+        ax2.set_ylabel('v (m/s)')
+        # set the title
+        ax2.set_title('Meridional velocities at the western edge of the basin')
+        # save the plot
+        fig2.savefig(params['v_fig_name'] + '.png')
+
+        # plot eta against x for for the middle of the gyre
+        fig3, ax3 = plt.subplots(figsize=(6, 6))
+        ax3.plot(x_plotting_eta/1000, eta[int(y_points/2), :], label='numerical eta')
+        # set the x label
+        ax3.set_xlabel('x (km)')
+        # set the y label
+        ax3.set_ylabel('eta (m)')
+        # set the title
+        ax3.set_title('Surface displacement at the middle of the gyre')
+        # save the plot
+        fig3.savefig(params['eta_fig_name'] + '.png')
+
+
+        # create a 2D contour plot of eta
+        fig4, ax4 = plt.subplots(figsize=(10, 8))
+        # plot the contour
+        contour = ax4.pcolormesh(x_plotting/1000, y_plotting/1000, eta[:,:], cmap='jet')
+        # set the x label
+        ax4.set_xlabel('x (km)')
+        # set the y label
+        ax4.set_ylabel('y (km)')
+        # add a colour bar
+        fig4.colorbar(contour)
+        # set the title
+        ax4.set_title('Surface displacement contour field')
+        # save the plot
+        fig4.savefig(params['eta_contour_fig_name'] + '.png')
+
+        plt.show()
+        
+# now initialiase the rk4 solver with the params for task d1 as a test
+rk4(params_numerical_TaskD_1Day)
+
+def shallow_water_equations(t, y, params):
+    """This function solves the shallow water equations using the Runge-Kutta method
+
+    Parameters
+    ----------
+    t : float
+        time
+    y : array
+        array of eta, u and v
+    params : dictionary
+        dictionary of parameters
+
+    Returns
+    -------
+    array
+        array of the time derivatives of eta, u and v
+    """
+    # unpack the parameters
+    H = params['H']
+    f0 = params['f0']
+    beta = params['beta']
+    gamma = params['gamma']
+    tau = params['tau']
+    rho = params['rho']
+    g = params['g']
+
+    # unpack the y array
+    eta = y[0]
+    u = y[1]
+    v = y[2]
+
+    # calculate the time derivatives
+    deta_dt = u
+    du_dt = -g*eta
+    dv_dt = -g*eta
+
+    # return the time derivatives
+    return np.array([deta_dt, du_dt, dv_dt])
 
 # %%
